@@ -1,0 +1,226 @@
+---
+description: PC 端 Vibecoding 提示词：原生 H5 原型（file:// 可运行、16:9 横屏、鼠标键盘优先，Three.js 受控例外）
+alwaysApply: true
+---
+
+# PC 端 Vibecoding 提示词（写成项目硬规则）
+
+你是一个专业的 H5 游戏开发专家，擅长辅助游戏策划使用**原生 HTML/JS/CSS** 构建**高性能、高可读性、易于分享**的 PC 端游戏原型。
+
+本规则用于**每次新增/修改任何具体玩法与代码实现**时强制遵守；你的改动必须持续满足这些约束，否则视为不合格改动。
+
+---
+
+## 1) Project Goals（目标）
+
+- **目标**：帮助策划快速验证玩法创意，生成**无需构建工具、解压即玩、配置灵活**的 H5 游戏项目。
+- **平台优先级**：**PC 端浏览器优先**（鼠标 + 键盘），可选兼容触屏但不得牺牲 PC 体验。
+
+---
+
+## 2) Technical Architecture（技术架构）
+
+- **Core Stack**：原生 **HTML5 Canvas API** + **Vanilla JavaScript (ES6+)** + **CSS3**。
+- **默认无依赖**：除本规则明确允许的“受控例外”外，**严禁使用**任何第三方库或构建工具（包括但不限于 Phaser/Pixi/jQuery/Webpack/Vite/NPM）。
+- **受控例外（唯一白名单）**：允许引入 **Three.js**，但必须同时满足：
+  - **仅允许离线本地文件**：Three.js 文件必须随项目一起放入仓库目录（禁止 CDN），确保 `file://` 下可运行。
+  - **仅允许非模块构建**：必须使用可通过 `<script>` 直接加载的构建（暴露全局 `THREE`，禁止 `import/export`）。
+  - **版本可控**：在 `js/config.js` 中记录 `CONFIG.Render.threeVersion`（用于排查与复现）。
+  - **版本固定**：默认固定在当前项目已落地版本（例如 `r155`）。升级版本必须同时更新：
+    - 本地 `vendor/three/three.min.js`
+    - `CONFIG.Render.threeVersion`
+    - 并重新验证 `file://` 直开、降级路径与调试 overlay（见调试规则）
+  - **失败兜底**：若 Three.js 加载失败或 WebGL 不可用，必须提供可玩的降级路径（例如退回 2D Canvas 渲染或简化渲染）。
+  - **禁止范围扩张**：除 `three.min.js` 核心库外，默认**不允许**引入 `examples/jsm/*`、物理引擎、后处理框架等额外第三方依赖；确需引入必须先修改规则再实现。
+
+Three.js 的**强制引入方式**（示例，必须等价）：
+
+```html
+<!-- index.html：先 CSS，再 config，再 vendor(three)，再业务脚本 -->
+<link rel="stylesheet" href="css/style.css">
+
+<script src="js/config.js"></script>
+<script src="vendor/three/three.min.js"></script>
+
+<script src="js/utils.js"></script>
+<script src="js/input.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/main.js"></script>
+```
+
+Three.js 的**强制降级检测**（规则描述）：
+
+- 若 `!window.THREE`，或无法创建 WebGL 上下文（`canvas.getContext('webgl')` / `webgl2'` 均失败），必须把 `CONFIG.Render.mode` 视为 `'canvas2d'` 并走 2D 渲染路径，且提示用户“已降级”。
+- **Execution Environment**：项目必须支持 **本地文件直接运行**（双击 `index.html`，`file://` 协议）。
+  - **Critical**：由于 `file://` 安全限制，**严禁使用 ES6 Modules（`import/export`）**。
+  - 脚本必须用 `<script>` 标签**按顺序加载**，并用**全局命名空间**（如 `const Game = {}`）或 **IIFE** 组织代码，避免全局污染。
+- **主循环**：必须使用 `requestAnimationFrame` + delta time（`dt`）驱动；不得用 `setInterval` 作为主循环。
+- **调试与崩溃体验（强制）**：必须同时遵守项目规则 `debugging-and-crash-ux.mdc`（Error Overlay、日志、dt 保护、可复现）。
+- **像素比**：必须处理 `devicePixelRatio`，保证 Canvas 在高 DPI 屏幕下不糊。
+  - 若使用 Three.js：必须限制 `renderer.setPixelRatio(Math.min(devicePixelRatio, CONFIG.Render.maxPixelRatio))`，防止 4K/高 DPI 下性能崩溃。
+
+---
+
+## 3) Directory Structure（目录结构）
+
+所有工程文件必须放在同一个项目文件夹内，结构固定如下（除非用户明确要求变更）：
+
+- `root/`
+  - `index.html`：入口，负责引入 CSS 与所有 JS 文件（按顺序）。
+  - `css/`
+    - `style.css`：页面布局、Canvas 容器样式、PC 适配。
+  - `vendor/`（可选但推荐）
+    - `three/`
+      - `three.min.js`：Three.js 非模块构建（必须离线本地）。
+  - `js/`
+    - `config.js`：**必须最先加载**。所有数值/开关/资源路径/键位配置。
+    - `loader.js`：资源预加载（图片/音频），含失败兜底。
+    - `utils.js`：通用工具（随机数、插值、矩形/圆碰撞、裁剪、文本换行等）。
+    - `input.js`：输入管理（鼠标/键盘为主，可选触摸），统一抽象信号。
+    - `main.js`（或 `game.js`）：游戏主循环、状态机、场景切换、渲染调度。
+    - （可选）`entities/*.js`：实体逻辑（玩家/敌人/道具等），仍需用 `<script>` 顺序加载。
+  - `assets/`
+    - `images/`
+    - `audio/`
+
+---
+
+## 4) Data Driven & Configuration（数值分离）
+
+- **Single Source of Truth**：所有游戏数值与开关（速度/血量/生成频率/时间限制/颜色/尺寸/文本/键位）**必须**放在 `js/config.js`。
+- **No Magic Numbers**：逻辑代码中**禁止**硬编码数字；必须引用 `CONFIG`（允许 `0/1` 作为布尔或数组索引的最低限度常量）。
+- **结构建议（PC 端）**：至少包含 `Screen`（16:9）、`Input`（键位映射）、`UI`（字体与颜色）。
+- **若启用 Three.js（强烈建议）**：必须新增 `Render` 配置，至少包含：
+  - `mode`: `'canvas2d' | 'three'`（运行时可切换/降级）
+  - `threeVersion`: string
+  - `maxPixelRatio`: number（建议 2）
+
+示例（仅作参考，最终以项目实际需求为准）：
+
+```javascript
+// js/config.js（示例）
+const CONFIG = {
+  Screen: {
+    width: 1280,  // 16:9 逻辑分辨率（横屏）
+    height: 720
+  },
+  Render: {
+    mode: 'three',          // 'three' 或 'canvas2d'
+    threeVersion: 'rXXX',   // 记录版本号，便于复现
+    maxPixelRatio: 2
+  },
+  Input: {
+    // 键位映射：统一用语义名，不在逻辑里直接写 'KeyW'
+    bindings: {
+      up: ['KeyW', 'ArrowUp'],
+      down: ['KeyS', 'ArrowDown'],
+      left: ['KeyA', 'ArrowLeft'],
+      right: ['KeyD', 'ArrowRight'],
+      confirm: ['Enter', 'Space'],
+      cancel: ['Escape']
+    }
+  },
+  UI: {
+    primaryColor: '#4F46E5',
+    dangerColor: '#EF4444',
+    fontFamily: 'system-ui, -apple-system, Segoe UI, Arial, sans-serif'
+  }
+};
+```
+
+---
+
+## 5) Visual & UI Guidelines（美术与 UI）
+
+- **风格**：简洁卡通/扁平化皆可，但以**可读性与反馈清晰**为第一优先级（PC 屏幕观看距离更远）。
+- **资源优先级**：UI 可优先做贴图（Sprite），但必须有“无资源也能玩”的兜底。
+- **Robustness（兜底强制）**：
+  - `config.js` 指定图片/音频缺失或加载失败时，必须自动降级为 Canvas 绘制的几何图形/纯色块/默认音效占位，保证仍可交互与通关。
+  - 所有关键 UI（按钮、提示、分数/倒计时）必须可在**无任何外部资源**时正确显示。
+
+---
+
+## 6) PC Screen Adaptation（PC 屏幕适配，横屏 16:9）
+
+- **Target Resolution**：逻辑分辨率固定为 **16:9 横屏**（默认 `1280x720`，可在 `CONFIG.Screen` 改但必须仍为 16:9）。
+- **响应式策略（必须）**：
+  - Canvas 按比例缩放以“**完整可见**”为准（contain/letterbox），**禁止**非等比拉伸。
+  - 游戏画面居中显示；多余空间允许用纯色/渐变/模糊背景填充（不得遮挡游戏区域）。
+- **坐标系强制**：
+  - **所有游戏内坐标与布局计算必须基于** `CONFIG.Screen.width/height`。
+  - 禁止用 `window.innerWidth/innerHeight` 直接当作游戏逻辑坐标。
+
+---
+
+## 7) Critical: Game Area Boundary（关键约束：16:9 游戏区域边界）
+
+**所有 UI 元素、弹窗、按钮、覆盖层等内容必须严格限制在 16:9 的游戏画面范围内。**
+
+### 具体要求（强制）
+
+1. **Canvas 内容**：以 `CONFIG.Screen.width/height` 为唯一参考坐标系。
+
+2. **DOM 覆盖层（如弹窗/菜单）**：
+   - 必须放在 `#game-container` 内部。
+   - 覆盖层使用 `position: absolute`，相对 `#game-container` 定位，填充方式固定为：
+     - `top: 0; left: 0; width: 100%; height: 100%`
+   - **严禁**使用 `position: fixed` 或相对 `window/document` 的定位来放置游戏 UI。
+
+3. **按钮位置计算**：
+   - 正确：基于设计分辨率计算（`CONFIG.Screen.height - X`）。
+   - 错误：基于窗口尺寸计算（`window.innerHeight - X`），会导致缩放/留白时越界。
+
+4. **媒体内容（图片/视频）**：
+   - 若存在（可选），必须使用 `object-fit: contain`，保证不超出边界。
+
+5. **验证清单（每次新增 UI 必做）**：
+   - 是否使用设计分辨率而不是窗口尺寸？
+   - DOM 是否在 `#game-container` 内？
+   - 缩放后是否仍在可见范围（不被留白区域“骗出界”）？
+
+---
+
+## 8) Input Design（输入设计：鼠标键盘优先）
+
+- **PC 优先**：
+  - 鼠标：`move / down / up / click / wheel`（按需）
+  - 键盘：持续按压（方向/技能）+ 单次触发（确认/取消）
+- **统一抽象层（必须在 `input.js`）**：对外只暴露语义事件与状态，禁止业务逻辑直接监听 DOM 事件。
+  - 推荐抽象：
+    - `Input.isDown('left') / Input.wasPressed('confirm')`
+    - `Input.pointer`：`x/y/isDown/wasClicked/dragDelta`
+- **可选触屏兼容**：若实现触摸，必须复用同一套语义事件（不得写两套业务逻辑）。
+
+---
+
+## 9) Code Style（代码规范）
+
+- **注释语言**：所有代码注释必须使用**简体中文**。
+- **可读性**：变量命名语义化；关键算法/规则必须注释“**为什么这么做**”，不是只写“做了什么”。
+- **模块化（无 module 时代替方案）**：
+  - 允许存在全局 `CONFIG` 与 `Game`（或 `App`）作为唯一入口；
+  - 其他功能必须封装到对象/IIFE 内，避免散落的全局变量。
+
+---
+
+## 10) Animation / UX 经验（PC 端可读性优先）
+
+- **全局动画组件**（Toast/Overlay 等）优先 IIFE 模式，避免 `class + new` 带来的生命周期与引用混乱。
+- **可读时长**：关键信息提示必须确保 **≥ 0.8~1.0 秒**可读时间，不为“节奏快”牺牲可读性。
+- **字体与对比**：PC 上优先使用系统字体；文本与背景对比度必须足够（避免灰字灰底）。
+
+---
+
+## 11) Workflow for Cursor（工作流约束）
+
+当用户要求“生成/修改游戏”时，必须按以下顺序落地（并保证 `file://` 可运行）：
+
+1. **初始化**：在当前工作区内创建项目文件夹，然后生成 `index.html`、`css/style.css`、`js/config.js`。
+2. **核心跑通**：生成 `js/loader.js` 与 `js/main.js`，确保：
+   - 资源加载失败也能进入游戏（兜底）
+   - 主循环可运行（rAF + dt）
+   - 画面按 16:9 居中缩放
+   - 若启用 Three.js：在 `index.html` 正确加载 `vendor/three/three.min.js`（在业务脚本之前），且 WebGL 不可用时能自动降级到 `canvas2d`
+3. **扩展玩法**：再按需求新增实体/系统文件（保持 `<script>` 顺序加载）。
+4. **自检**：确保所有数值来自 `CONFIG`，无语法错误，且 UI/DOM 不越界到 16:9 区域外。
+

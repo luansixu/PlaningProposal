@@ -1,0 +1,31 @@
+[gd_scene load_steps=3 format=3 uid="uid://dh2qv7eoqouca"]
+
+[ext_resource type="Script" uid="uid://cg4spq4786w7a" path="res://script/ui/AIModelLabel.gd" id="1_abc123"]
+
+[sub_resource type="Theme" id="Theme_4ykh3"]
+
+[node name="AIModelLabel" type="Label"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -7.5
+offset_right = 50.0
+offset_bottom = 7.5
+theme = SubResource("Theme_4ykh3")
+text = "Ollama: qwen2.5:1.5b"
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("1_abc123")
+
+[node name="Background" type="NinePatchRect" parent="."]
+show_behind_parent = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = -2.0
+offset_right = 2.0
+offset_bottom = 2.0

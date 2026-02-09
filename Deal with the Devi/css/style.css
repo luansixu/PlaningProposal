@@ -1,0 +1,383 @@
+/* Deal with the Devi - PC 端 16:9 居中缩放（所有 UI 严格限制在 #game-container 内） */
+
+:root {
+  --bg0: #070a14;
+  --bg1: #0b1020;
+  --panel: rgba(15, 23, 42, 0.72);
+  --panel2: rgba(2, 6, 23, 0.55);
+  --text: rgba(226, 232, 240, 0.92);
+  --muted: rgba(226, 232, 240, 0.72);
+  --border: rgba(148, 163, 184, 0.22);
+  --primary: #4f46e5;
+  --good: #22c55e;
+  --danger: #ef4444;
+  --warn: #fbbf24;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: radial-gradient(1200px 800px at 50% 30%, #1b2a6b 0%, var(--bg1) 55%, var(--bg0) 100%);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+}
+
+#page {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+/* 16:9 游戏边界 */
+#game-container {
+  position: relative;
+  width: min(100vw, calc(100vh * (16 / 9)));
+  height: min(100vh, calc(100vw * (9 / 16)));
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.48);
+  background: rgba(2, 6, 23, 0.35);
+}
+
+#game-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#ui-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+#modal-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* 由 modal-mask 接管交互 */
+}
+
+.modal-mask {
+  pointer-events: auto;
+}
+
+#topbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 10px 8px 10px;
+}
+
+.chip {
+  display: inline-flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.chip.subtle {
+  background: rgba(2, 6, 23, 0.55);
+}
+.chip .k {
+  color: var(--muted);
+  font-size: 12px;
+}
+.chip .v {
+  font-weight: 700;
+}
+.spacer {
+  flex: 1;
+}
+
+#screen {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 260px 1fr 280px;
+  gap: 10px;
+  padding: 0 10px 10px 10px;
+  min-height: 0;
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  backdrop-filter: blur(6px);
+  padding: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel-title {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  margin-bottom: 10px;
+}
+
+.panel-sep {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.18);
+  margin: 12px 0;
+}
+
+.list {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: var(--panel2);
+  border-radius: 12px;
+  padding: 10px;
+  line-height: 1.45;
+  overflow: auto;
+  min-height: 100px;
+}
+.placeholder {
+  color: var(--muted);
+}
+
+.small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+.hidden {
+  display: none !important;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  margin-top: 6px;
+}
+.subtitle {
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 720px;
+}
+
+.menu-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.menu-tip {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+  border-left: 3px solid rgba(79, 70, 229, 0.6);
+  padding-left: 10px;
+}
+
+.card {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(2, 6, 23, 0.55);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.card-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 12px 0 12px;
+}
+.card-title {
+  font-weight: 900;
+}
+.badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.1);
+  color: rgba(253, 230, 138, 0.95);
+}
+.card-body {
+  padding: 10px 12px 12px 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow: auto;
+  min-height: 140px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn {
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.75);
+  color: rgba(226, 232, 240, 0.95);
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.btn:hover {
+  border-color: rgba(148, 163, 184, 0.38);
+}
+.btn.primary {
+  background: rgba(79, 70, 229, 0.72);
+  border-color: rgba(79, 70, 229, 0.9);
+}
+.btn.good {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(34, 197, 94, 0.45);
+}
+.btn.danger {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.45);
+}
+.btn.disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn.small-btn {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.log {
+  flex: 1;
+  min-height: 0;
+}
+.log-body {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(2, 6, 23, 0.55);
+  border-radius: 12px;
+  padding: 10px;
+  line-height: 1.5;
+  color: rgba(226, 232, 240, 0.92);
+  overflow: auto;
+  min-height: 0;
+  white-space: pre-wrap;
+}
+
+/* 弹窗（在 #modal-root 下创建，严格覆盖 game-container） */
+.modal-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  box-sizing: border-box;
+  z-index: 9000;
+}
+.modal {
+  width: min(980px, 100%);
+  max-height: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+}
+.modal-head {
+  padding: 12px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+.modal-title {
+  font-weight: 900;
+}
+.modal-body {
+  padding: 12px 14px 14px 14px;
+  overflow: auto;
+  min-height: 0;
+}
+.modal-foot {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field label {
+  color: var(--muted);
+  font-size: 12px;
+}
+.field textarea,
+.field input {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(2, 6, 23, 0.55);
+  color: rgba(226, 232, 240, 0.95);
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  line-height: 1.45;
+  resize: vertical;
+  min-height: 100px;
+  box-sizing: border-box;
+}
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sentence {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.18);
+}
+.sentence:last-child {
+  border-bottom: none;
+}
+.sentence .ref {
+  min-width: 70px;
+  color: rgba(148, 163, 184, 0.95);
+  font-size: 12px;
+  padding-top: 2px;
+}
+.sentence .text {
+  flex: 1;
+  line-height: 1.55;
+}
+.sentence .pick {
+  white-space: nowrap;
+}
+

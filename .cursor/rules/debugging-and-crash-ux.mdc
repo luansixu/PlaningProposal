@@ -1,0 +1,81 @@
+---
+description: 调试与崩溃体验硬规则：可见错误、可复现、可降级、可复制诊断信息（H5 原型）
+alwaysApply: true
+---
+
+# 调试与崩溃体验（强制）
+
+目标：任何报错都不能“黑屏/卡死/无提示”。必须让开发者在 **30 秒内定位到错误位置**，或至少拿到可复现信息。
+
+---
+
+## 1) 全局错误捕获（必须）
+
+- 必须监听：
+  - `window.onerror`
+  - `window.onunhandledrejection`
+- 捕获后必须同时做到：
+  - `console.error(...)` 输出完整信息（包含 stack）
+  - 在 `#game-container` 内显示 **错误覆盖层（Error Overlay）**
+
+覆盖层最少包含：
+- 错误标题（Error / Promise Rejection）
+- `message`
+- `stack`（可折叠）
+- 最近 N 条日志（ring buffer）
+- 按钮：**复制诊断信息**、**刷新页面**
+
+---
+
+## 2) 主循环防崩（必须）
+
+- `update/render` 必须外层 `try/catch`：
+  - 一旦抛错：**立即停止 rAF**（防止刷屏与状态进一步损坏）
+  - 显示 Error Overlay
+- `dt` 必须保护：
+  - `dt = Math.min(dt, CONFIG.Debug.maxDt)`（防止切后台回来物理/动画炸掉）
+  - 页面不可见（`visibilitychange`）时必须暂停或重置时间戳
+
+---
+
+## 3) 统一日志（必须）
+
+- 必须提供 `Logger` 工具：
+  - 支持 `debug/info/warn/error`
+  - 支持 `CONFIG.Debug.logLevel` 控制
+  - 必须保留最近 N 条日志用于 overlay 展示
+- 禁止散落 `console.log` 作为长期日志方案（允许在初始化阶段短期使用，但最终必须接入 `Logger`）
+
+---
+
+## 4) 可复现性（必须）
+
+- 必须支持固定随机种子：
+  - `CONFIG.Debug.seed` 为单一真源
+  - 所有随机都必须走同一个 `RNG`（禁止 `Math.random()` 直接用于玩法结果）
+- 必须提供“复制诊断信息”时包含：
+  - seed
+  - 渲染模式（three/canvas2d）与降级原因（若有）
+  - `THREE.REVISION`（若存在）
+  - 最近 N 条日志
+  - 最近一次错误 stack
+
+---
+
+## 5) WebGL/Three.js 特殊故障（必须）
+
+- 必须处理：
+  - `webglcontextlost`（`event.preventDefault()`，显示 overlay，提示刷新/自动重建策略）
+  - `webglcontextrestored`（若实现重建则自动恢复；否则提示刷新）
+- 若 `!window.THREE` 或 WebGL 不可用：必须自动降级到 `canvas2d`，并在 HUD/Overlay 明确显示降级原因。
+
+---
+
+## 6) LLM 相关（若玩法使用大模型时必须）
+
+当玩法包含大模型闭环时，调试信息必须额外记录最近一次：
+- 玩家输入（脱敏/长度限制）
+- 系统提示摘要（脱敏/长度限制）
+- 模型结构化输出（JSON 原文）
+- 解析失败原因 / 触发的降级策略
+

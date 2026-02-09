@@ -1,0 +1,96 @@
+[gd_scene load_steps=2 format=3 uid="uid://mihymhf4utt2"]
+
+[ext_resource type="Script" uid="uid://djjj2u1lwbne8" path="res://script/ui/SaveLoadUI.gd" id="1_08l20"]
+
+[node name="SaveLoadUI" type="Control"]
+z_index = 100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_08l20")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.501961)
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -200.0
+offset_right = 250.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "游戏存档"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="SaveList" type="ItemList" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SaveNameContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/SaveNameContainer"]
+layout_mode = 2
+text = "存档名称:"
+
+[node name="SaveNameInput" type="LineEdit" parent="Panel/VBoxContainer/SaveNameContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "输入存档名称"
+
+[node name="ButtonContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="SaveButton" type="Button" parent="Panel/VBoxContainer/ButtonContainer"]
+layout_mode = 2
+text = "保存游戏"
+
+[node name="LoadButton" type="Button" parent="Panel/VBoxContainer/ButtonContainer"]
+layout_mode = 2
+text = "加载游戏"
+
+[node name="DeleteButton" type="Button" parent="Panel/VBoxContainer/ButtonContainer"]
+layout_mode = 2
+text = "删除存档"
+
+[node name="CloseButton" type="Button" parent="Panel/VBoxContainer/ButtonContainer"]
+layout_mode = 2
+text = "关闭"
+
+[node name="StatusLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1

@@ -1,0 +1,95 @@
+[gd_scene load_steps=2 format=3 uid="uid://cx6intujeggdd"]
+
+[sub_resource type="GDScript" id="GDScript_fqwb0"]
+script/source = "extends Control
+
+@onready var input_line = $VBoxContainer/InputLine
+@onready var output_text = $VBoxContainer/OutputText
+
+var command_processor: Node
+
+func _ready():
+	command_processor = get_parent().get_node(\"CommandProcessor\")
+	command_processor.command_executed.connect(_on_command_executed)
+	input_line.text_submitted.connect(_on_command_entered)
+	
+	# 设置快捷键打开/关闭命令行
+	hide()
+
+func _unhandled_input(event):
+	if event.is_action_pressed(\"toggle_console\"):  # 需要在项目设置中添加这个动作
+		if visible:
+			hide()
+			input_line.release_focus()
+		else:
+			show()
+			input_line.grab_focus()
+		get_viewport().set_input_as_handled()
+	
+	# 只在命令行可见且正在输入时阻止游戏输入
+	if visible and input_line.has_focus():
+		get_viewport().set_input_as_handled()
+
+func _input(event):
+	# 处理鼠标点击事件
+	if event is InputEventMouseButton and event.pressed:
+		if visible:
+			# 检查点击是否在命令行UI区域内
+			var click_pos = event.position
+			if not get_global_rect().has_point(click_pos):
+				# 如果点击在UI外部，关闭命令行
+				hide()
+				input_line.release_focus()
+				get_viewport().set_input_as_handled()
+
+func _on_command_entered(command: String):
+	if command.strip_edges().is_empty():
+		return
+		
+	print(\"Command entered: \", command)  # 添加调试输出
+	output_text.text += \"\\n> \" + command
+	input_line.clear()
+	command_processor.process_command(command)
+
+func _on_command_executed(success: bool, message: String):
+	print(\"Command execution result: \", success, \" - \", message)  # 添加调试输出
+	var prefix = \"√ \" if success else \"× \"
+	output_text.text += \"\\n\" + prefix + message
+	output_text.scroll_vertical = output_text.get_line_count()
+"
+
+[node name="CommandUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_fqwb0")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="OutputText" type="TextEdit" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "输入 help 查看可用命令"
+editable = false
+context_menu_enabled = false
+shortcut_keys_enabled = false
+selecting_enabled = false
+deselect_on_focus_loss_enabled = false
+drag_and_drop_selection_enabled = false
+virtual_keyboard_enabled = false
+middle_mouse_paste_enabled = false
+
+[node name="InputLine" type="LineEdit" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+placeholder_text = "输入命令..."

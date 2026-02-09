@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8yvbmvl6ykxr"]
+
+[ext_resource type="Script" uid="uid://dtndfsk5cglp" path="res://script/ui/SaveLoadUIManager.gd" id="1_qqwvs"]
+[ext_resource type="PackedScene" uid="uid://mihymhf4utt2" path="res://scene/ui/SaveLoadUI.tscn" id="2_yjvxs"]
+
+[node name="SaveLoadUIManager" type="CanvasLayer"]
+script = ExtResource("1_qqwvs")
+
+[node name="SaveLoadUI" parent="." instance=ExtResource("2_yjvxs")]

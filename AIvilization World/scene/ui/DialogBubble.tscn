@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c7jcvkyjit7i1"]
+
+[ext_resource type="Script" uid="uid://dwy3da8wksypr" path="res://script/ui/DialogBubble.gd" id="1_svbxx"]
+
+[node name="DialogBubble" type="Node2D"]
+script = ExtResource("1_svbxx")

@@ -1,0 +1,43 @@
+# API Keys - 绝不提交
+APIkey.md
+*.env
+.env.*
+
+# Godot 编辑器缓存
+.godot/
+.import/
+*.import
+*.translation
+.mono/
+data_*/
+mono_crash.*.json
+
+# UID 文件（Godot 自动生成）
+*.uid
+
+# 压缩包（太大/二进制）
+*.rar
+*.zip
+*.7z
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.swp
+
+# IDE
+.vscode/
+*.code-workspace
+
+# Three.js 本地库（太大，不需要推送）
+vendor/three/three.min.js
+Deal with the Devi/vendor/three/three.min.js
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://d3b20w23c7swj"]
+
+[ext_resource type="Script" uid="uid://qlyxft7dibpy" path="res://script/ChatHistory.gd" id="1_r4s0d"]
+
+[node name="ChatHistory" type="Node"]
+script = ExtResource("1_r4s0d")
